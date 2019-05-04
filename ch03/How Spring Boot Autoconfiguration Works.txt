@@ -1,0 +1,65 @@
+How Spring Boot Autoconfiguration Works
+The key to Spring Boot's autoconfiguration is its @EnableAutoConfiguration annotation.
+Typically, you annotate the application entry point class with @SpringBootApplication or , if you want to customize the default you can use the following annotations ;
+
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan
+public class Application
+{
+}
+
+The @EnableAutoConfiguration annotation enables the autoconfiguration of Spring ApplicationContext by scanning the classpath components and registreing the beans that match various conditions.
+
+Spring Boot provides various autoconfiguration classes in spring-boot-autoconfigure- {version}.jar, and they are responsible for registering various components.
+
+Autoconfiguration classes are typically annotated with @Configuration to mark it as a Spring configuration class and annotated with @EnableConfigurationProperties to bind the customization properties and one or more conditional bean registration methods.
+
+For example, consider the org.springframework.boot.autoconfigure.jdbc. DataSourceAutoConfiguration class.
+
+
+@Configuration
+@ConditionalOnClass({ DataSource.class, EmbeddedDatabaseType.class })
+@EnableConfigurationProperties(DataSourceProperties.class)
+@Import({ Registrar.class, DataSourcePoolMetadataProvidersConfiguration.class })
+public class DataSourceAutoConfiguration {
+
+//
+
+}
+
+
+Here, DataSourceAutoConfiguration is annotated with @ConditionalOnClass({ DataSource. class, EmbeddedDatabaseType.class }), which means that the autoconfiguration of beans defined in DataSourceAutoConfiguration will be considered only if the DataSource.class and EmbeddedDatabaseType.class classes are available on the classpath.
+
+
+The class is also annotated with @EnableConfigurationProperties(DataSourceProperties. class), which enables binding the properties in application.properties to the properties of the DataSourceProperties class automatically.
+
+
+@ConfigurationProperties(prefix = DataSourceProperties.PREFIX)
+public class DataSourceProperties implements BeanClassLoaderAware, EnvironmentAware,
+InitializingBean {
+    public static final String PREFIX = "spring.datasource";
+    ...
+    ...
+    private String driverClassName;
+    private String url;
+    private String username;
+    private String password;
+    ...
+    //setters and getters
+}
+
+With this configuration, all the properties that start with spring.datasource.* will be automatically
+bound to the DataSourceProperties object.
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=secret
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+
+ou can also explore many other AutoConfiguration classes in spring-boot-autoconfigure-
+{version}.jar, such as:
+• org.springframework.boot.autoconfigure.web.DispatcherServletAutoConfiguration
+• org.springframework.boot.autoconfigure.orm.jpa.Hibernate JpaAutoConfiguration
+• org.springframework.boot.autoconfigure.data.jpa.JpaRepositories AutoConfiguration
+• org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
