@@ -1,0 +1,80 @@
+package demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(DemoApplication.class, args);
+
+		// https://www.baeldung.com/spring-boot-custom-auto-configuration
+
+		// the Spring Boot autoconfiguration represents a way to automatically configure
+		// a Spring application based on the dependencies that are present on the
+		// classpath.
+
+		// This can make development faster and easier by eliminating the need for
+		// defining certain beans that are included in the auto-configuration classes.
+
+		// To create a custom auto-configuration, we need to create a class annotated as
+		// @Configuration and register it.
+		// ; configuration.MySQLAutoConfiguration
+
+		// The next mandatory step is registering the class as an auto-configuration
+		// candidate, by adding the name of the class under the key
+		// org.springframework.boot.autoconfigure.EnableAutoConfiguration in the
+		// standard file resources/META-INF/spring.factories
+
+		// If we want our auto-configuration class to have priority over other
+		// auto-configuration candidates, we can add the
+		// @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE) annotation.
+
+		// Note that the auto-configuration is only in effect if the auto-configured
+		// beans are not defined in the application. If you define your bean, then the
+		// default one will be overridden.
+
+		// Class conditions allow us to specify that a configuration bean will be
+		// included if a specified class is present using the @ConditionalOnClass
+		// annotation, or if a class is absent using the @ConditionalOnMissingClass
+		// annotation.
+
+		// Let’s specify that our MySQLConfiguration will only be loaded if the class
+		// DataSource is present, in which case we can assume the application will use a
+		// database:
+
+		// @Configuration
+		// @ConditionalOnClass(DataSource.class)
+		// public class MySQLAutoconfiguration {
+		// //...
+		// }
+
+		// If we want to include a bean only if a specified bean is present or not, we
+		// can use the @ConditionalOnBean and @ConditionalOnMissingBean annotations.
+
+		// The @ConditionalOnProperty annotation is used to specify if a configuration
+		// will be loaded based on the presence and value of a Spring Environment
+		// property.
+
+		// First, let’s add a property source file for our configuration that will
+		// determine where the properties will be read from:
+
+		// @PropertySource("classpath:mysql.properties")
+		// public class MySQLAutoconfiguration {
+		// //...
+		// }
+
+		// Adding the @ConditionalOnResource annotation means that the configuration
+		// will only be loaded when a specified resource is present.
+
+		// If we don’t want to use any of the conditions available in Spring Boot, we
+		// can also define custom conditions by extending the SpringBootCondition class
+		// and overriding the getMatchOutcome() method.
+
+		// We can also specify that the configuration can be loaded only inside/outside
+		// a web context, by adding the @ConditionalOnWebApplication or
+		// @ConditionalOnNotWebApplication annotation.
+
+	}
+}
