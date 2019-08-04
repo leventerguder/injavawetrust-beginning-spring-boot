@@ -1,0 +1,58 @@
+ 	
+ 	Externalizing Configuration Properties
+ 	Typically you will want to externalize configuration parameters into separate properties or XML files
+ 	instead of burying them inside code so that you can easily change them based on the environment of the 
+ 	application.
+
+ 	Spring provides the @PropertySource annotation to specify the list of configuration files.
+
+ 	Spring Boot takes it one step further by automatically registering a PropertyPlaceHolderConfigurer bean using 
+ 	the application.properties file in the root class by default.
+
+ 	You can also create profile specific configuration files using the filename as application - {profile}.properties.
+
+ 	For example, you can have application.properties, which contains the default properties values, application-dev.properties, which contains the dev profile configuration, and application-prod. properties, which contains the production profile configuration values. If you want to configure properties that are common for all the profiles, you can configure them in application-default.properties.
+
+
+ 	You can also use YaMl (.yml) files as an alternative to .properties.
+
+
+ 	Type-Safe Configuration Properties
+
+ 	Spring provides the @Value annotation to bind any property value to a bean property. Suppoise you had the following application.properties file
+
+ 	jdbc.driver=com.mysql.jdbc.Driver
+	jdbc.url=jdbc:mysql://localhost:3306/test
+	jdbc.username=root
+	jdbc.password=secret
+
+
+	You can bind these property values into bean properties using @Value as follows:
+	@Configuration
+	public class DataSourceConfig
+	{
+	    @Value("${jdbc.driver}")
+	    private String driver;
+
+	    @Value("${jdbc.url}")
+	    private String url;
+	    
+	    @Value("${jdbc.username}")
+	    private String username;
+	    
+	    @Value("${jdbc.password}")
+	    private String password;
+	
+		... 
+	}
+
+
+	But binding each property using @Value is a tedious process. So, Spring Boot introduced a mechanism to bind a set of properties to a bean's properties automatically in a type-safe manner.
+
+  	You can simply annotate @ConfigurationProperties(prefix = "jdbc") to automatically bind the properties that start with jdbc.*
+
+
+  	Relaxed Binding
+	The bean property names need not be exactly the same as the property key names. Spring Boot supports relaxed binding, 
+	where the bean property driverClassName will be mapped from any of these: driverClassName, driver-class-name, or DRIVER_CLASS_NAME.
+
