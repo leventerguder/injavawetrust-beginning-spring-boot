@@ -1,0 +1,46 @@
+
+	Logging
+	
+	Spring Boot , by default , includes spring-boot-starter-logging as a transitive dependency for the spring-boot-starter module.
+	Sprig Boot has a LoggingSystem abstraction that automatically configures logging based on the logging configuration files available in the classpath.
+	
+	
+	if Logback is available , Spring Boot will choose it as the logging handler. You can easily configure logging levels within the application.properties file 
+	without having to create logging provider specific configuration files such as logback.xml or log4j.properties.
+	
+	
+	logging.level.org.springframework.web=INFO
+	logging.level.org.hibernate=ERROR
+	logging.level.com.apress=DEBUG
+	
+	if you want to log the data into a file in addition to the console , specifiy the filename as follows
+	
+	logging.path=/var/logs/app.log
+	or
+	logging.file=myapp.log
+	
+	if you place the logback.xml file in the root classpath , Spring Boot will automatically use it to configure the logging system.
+	
+	
+	if you want to use other logging libraries, such as Log4j or Log4J2 , instead of Logback, 
+	you can exclude spring-boot-starter-logging and include the respective logging starter as follows :
+	
+	
+	dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter</artifactId>
+	    <exclusions>
+	        <exclusion>
+	            <groupId>org.springframework.boot</groupId>
+	            <artifactId>spring-boot-starter-logging</artifactId>
+	        </exclusion>
+	    </exclusions>
+	</dependency>
+	
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-log4j</artifactId>
+	</dependency>
+	
+	
+	Now you can add the log4j.properties file to the root classpath , which Spring Boot will automatically use for logging.
