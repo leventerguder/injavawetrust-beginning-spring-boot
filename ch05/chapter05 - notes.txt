@@ -1,0 +1,92 @@
+Working with JdbcTemplate
+
+Java provides JDBC API to talk to the database , but it is a low-level API that requires lots of boilerplate coding.
+The JavaEE platform provides the Java Persistence API (JPA) specification , which is an Object Relational Mapping (ORM) framework.
+
+Hibernate and EclipseLink are the most popular JPA implementations. There are other popular persistence frameworks, 
+such as MyBatis and JOOQ, that are more SQL focused.
+
+
+Spring provides a nice abstraction on top of the JDBC API, using JdbcTemplate, and provides great transaction management capabilities using an annotation-based approach. Spring Data is an umbrella project that provides support for integration with most of the popular data access technologies, such as JPA, MongoDB, Redis, Cassandra, Solr, ElasticSearch, etc. Spring Boot makes it easier to work with these persistence technologies by automatically configuring required beans based on various criteria.
+
+
+Using JdbcTemplate Without Spring Boot
+
+
+Using JdbcTemplate with Spring Boot
+If you use Spring Boot's autoconfiguration feature , you dont have to configure beans manually.
+
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+
+By adding the spring-boot-starter-jdbc module , you get the following autoconfiguration features :
+
+- The spring-boot-starter-jdbc module transitevly pulls tomcat-jdbc-{version}.jar , which is used to configure the DataSource bean.
+- If you have not defined a DataSource bean explicitly and if you have any embedded database drivers in the classpath , such as H2 , HSQL , or Derby , then
+Spring Boot will automatically register the DataSource bean using the in-memory database settings.
+- If you havent registered any of the following beans , then Spring Boot will register them automatically.
+	# PlatformTransactionManager (DataSourceTransactionManager)
+	# JdbcTemplate
+	# NamedParameterJdbcTemplate
+
+- You can have the schema.sql and data.sql files in the root classpath , which Spring Boot will automatically use to initialize the database.
+
+
+Initializing the Database
+
+Spring Boot uses the spring.datasource.initialize property value , which is true by default, to determine whether to initialize the database.
+If the spring.datasource.initialize property is set to true , Spring Boot will use the schema.sql and data.sql files in the root classpath
+to initialize the database.
+
+In addition to schema.sql and data.sql, Spring Boot will load the schema-${platform}.sql and data-${platform}.sql files if they are available in the root classpath. Here, the platform value is the value of the spring.datasource.platform property, which can be hsqldb, h2, oracle, mysql, postgresql, etc.
+
+
+You can customize the default names of the scripts using the following properties : 
+
+
+spring.datasource.schema=create-db.sql
+spring.datasource.data=seed-data.sql
+
+If you want to turn off the database initialization , you can set spring.datasource.initialize = false
+If there are any errors in executing the scripts, the application will fail to start. If you want to continue, you can set spring.datasource.continueOnError=true.
+
+
+By default ,the Spring Boot features such as external properties , logging , etc ... are available in the ApplicationContext only if you use Spring Application.
+So, Spring Boot provides the @SpringBootTest annotation to configure the ApplicationContext for tests that use SpringApplication behind scenes.
+
+You have learned how to get started quickly with embedded databases. But what if you want to use non- embedded databases like MySQL, Oracle, and PostgreSQL?
+You can configure the database properties in the application.properties file so that Spring Boot will use those JDBC parameters to configure the DataSource bean.
+
+
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=admin
+
+
+
+Using Other Connection Pooling Libraries
+
+In Spring Boot 2, Hikari is the default DataSource implementation.
+
+Spring Boot checks the availability of the following classes and uses the first one that is available in the classpath.
+
+
+One of Hikari’s advantages over other DataSource implementations is the fact that it offers a lot of configuration parameters.
+
+We can specify the values for these parameters by using the prefix spring.datasource.hikari and appending the name of the Hikari parameter:
+
+spring.datasource.hikari.connectionTimeout=30000
+spring.datasource.hikari.idleTimeout=600000
+spring.datasource.hikari.maxLifetime=1800000
+
+
+For example, you can set the HikariCP connection pool settings as follows:
+
+spring.datasource.hikari.allow-pool-suspension=true
+spring.datasource.hikari.connection-test-query=SELECT 1
+spring.datasource.hikari.transaction-isolation=TRANSACTION_READ_COMMITTED
+spring.datasource.hikari.connection-timeout=45000
