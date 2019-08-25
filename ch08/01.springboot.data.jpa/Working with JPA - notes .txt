@@ -1,0 +1,162 @@
+	Working with JPA
+	JPA simplifies the implementation of the data access layer by letting developers work with an object oriented API instead of writing SQL queries by hand. 
+	
+	The Spring framework provides a Spring ORM module to integrate easily with ORM frameworks. You can also use Spring's declarative transaction management capabilities with JPA. 
+	
+	Spring Data integrates with most of the popular data access technologies, including JPA, MongoDB, Redis, Cassandra, Solr, ElasticSearch, etc.
+	
+	Without using Spring Boot, you need to configure various beans like DataSource, TransactionManager, LocalContainerEntityManagerFactoryBean, etc. by yourself. You can use the Spring Boot JPA Starter spring-boot-starter-data-jpa to quickly get up and running with JPA. 
+	
+	Spring Data is an umbrella project that provides data access support for most of the popular data access technologies—including JPA, MongoDB, Redis, Cassandra, Solr, and ElasticSearch
+	
+	Spring Data provides various repository abstractions, such as CrudRepository, PagingAndSortingRepository, JpaRepository ...
+	
+	Spring Data JPA not only provides CRUD operations out-of-the-box, but it also supports dynamic query generation based on the method names.
+	
+	
+	• By defining a User findByEmail(String email) method, Spring Data will
+	automatically generate the query with a where clause, as in "where email = ?1".
+	
+	• By defining a User findByEmailAndPassword(String email, String password) method, Spring Data will automatically generate the query with a where clause, as in "where email = ?1 and password=?2".
+	
+	Spring Data provides flexibility to configure the query explicitly using the @Query annotation.
+	
+	@Query("select u from User u where u.email=?1 and u.password=?2 and u.enabled=true")
+	User findByEmailAndPassword(String email, String password);
+	
+	
+	You can also perform data update operations using @Modifying and @Query, as follows:
+	@Modifying
+	@Query("update User u set u.enabled=:status")
+	int updateUserStatus(@Param("status") boolean status)
+	
+	
+	Using Spring Data JPA with Spring Boot
+	
+	Now that you’ve had a glimpse of what Spring Data JPA is and what kind of features it provides, this section shows you how to put it into action.
+	
+	1. Create a Spring Boot Maven project and add the following dependencies.
+	
+	<dependencies>
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-starter-data-jpa</artifactId>
+	    </dependency>
+	    <dependency>
+	        <groupId>com.h2database</groupId>
+	        <artifactId>h2</artifactId>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-starter-test</artifactId>
+	        <scope>test</scope>
+	    </dependency>
+	</dependencies>
+	
+	
+	2. Create a JPA entity called User and a JPA repository interface called UserRepository.
+	3. Create a user JPA entity
+	
+	@Entity
+	@Table(name="USERS")
+	public class User
+	{
+	    @Id @GeneratedValue(strategy=GenerationType.AUTO)
+	    private Integer id;
+	    @Column(nullable=false)
+	    private String name;
+	    @Column(nullable=false, unique=true)
+	    private String email;
+	    private boolean disabled;
+	    //setters and getters
+	}
+	
+	
+	4. Create the UserRepository interface by extending the JpaRepository interface,
+	
+	JPA Repository Interface UserRepository.java
+	public interface UserRepository extends JpaRepository<User, Integer>
+	{ }
+	
+	
+	5. You can now populate some sample data using the SQL script src/main/ resources/data.sql:
+	
+	insert into users(id, name, email,disabled)
+	values(1,'John','john@gmail.com', false);
+	
+	insert into users(id, name, email,disabled)
+	values(2,'Rod','rod@gmail.com', false);
+	
+	insert into users(id, name, email,disabled)
+	values(3,'Becky','becky@gmail.com', true);
+	
+	
+	Since you configured the in-memory database H2 driver , Spring Boot automatically registers a Datasource.
+	Since you added the spring-boot-starter-data-jpa dependency , Spring Boot autoconfiguration takes care of creating the JPA related beans like 
+	LocalContainerEntityManagerFactoryBean , TransactionManager , etc .. automatically with sensible defaults.
+	
+	
+	6. Create a Spring Boot entry point class called SpringbootJPADemoApplication.
+	7. Create a JUnit test class for testing the UserRepository methods
+	
+	
+	Add Dynamic Query Methods
+	Now you will add some finder methods to see how dynamic query generation based on method names works.
+	
+	To get a user by name ;
+	
+	User findByName(String name)
+	
+	
+	To search for users by name ;
+	
+	List<User> findByNameLike(String name)
+	
+	
+	The preceding method generates a where clause like where u.name like ?1.
+	Suppose you want to do a wildcard search, such as where u.name like %?1%. You can use @Query as follows:
+	
+	@Query("select u from User u where u.name like %?1%")
+	List<User> searchByName(String name)
+	
+	
+	Using the Sort and Pagination Features
+	
+	Suppose you want to get all users by their names in ascending order. You can use the findAll(Sort sort) method as follows :
+	
+	
+	Sort sort = new Sort(Direction.ASC, "name");
+	List<User> users = userRepository.findAll(sort);
+	
+	
+	You can also apply sorting on multiple properties, as follows:
+	
+	Order order1 = new Order(Direction.ASC, "name");
+	Order order2 = new Order(Direction.DESC, "id");
+	
+	Sort sort = Sort.by(order1, order2);
+	List<User> users = userRepository.findAll(sort);
+	
+	
+	Suppose you want to load the first 25 users on one page. We can use Pageable and PageRequest to get results by page, as follows:
+	
+	
+	int size = 25;
+	int page = 0; //zero-based page index.
+	Pageable pageable = PageRequest.of(page, size);
+	Page<User> usersPage = userRepository.findAll(pageable);
+	
+	
+	The usersPage will contain the first 25 user records only. You can get additional details, like the total number of pages, the current page number, whether there is a next page, whether there is a previous page, and more.
+	
+	• usersPage.getTotalElements();—Returns the total amount of elements.
+	• usersPage.getTotalPages();—Returns the total number of pages.
+	• usersPage.hasNext();
+	• usersPage.hasPrevious();
+	• List<User> usersList = usersPage.getContent();
+	
+	Sort sort = new Sort(Direction.ASC, "name");
+	Pageable pageable = PageRequest.of(page, size, sort);
+	Page<User> usersPage = userRepository.findAll(pageable);
+	
+	
