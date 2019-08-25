@@ -1,0 +1,82 @@
+Working with Multiple Databases
+
+Spring Boot autoconfiguraiton works out-of-the box if you have single database to work with and provides plenty of customization options through its properties.
+But if your application demands more control over the applicaiton configuration , you can turn off specific autoconfigurations and configure the components by yourself.
+
+For example, you might want to use multiple databases in the same application. If you need to connect to multiple databases, you need to configure various Spring beans like DataSources, TransactionManagers, EntityManagerFactoryBeans, DataSourceInitializers, etc., explicitly.
+
+Suppose you have an application where the security data has been stored in one database/schema and order-related data has been stored in another database/schema.
+
+
+If you add the spring-boot-starter-data-jpa starter and just define the DataSource beans only, then Spring Boot will try to automatically create some beans (for example, TransactionManager), assuming there will be only one data source. It will fail.
+
+
+Now you’ll see how you can work with multiple databases in Spring Boot and use the Spring Data JPA based application
+
+
+1. Create a Spring Boot application with the data-jpa starter. Configure the following dependencies in pom.xml:
+
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-data-jpa</artifactId>
+	</dependency>
+	<dependency>
+	    <groupId>mysql</groupId>
+	    <artifactId>mysql-connector-java</artifactId>
+	</dependency>
+
+
+2. Turn off the DataSource/JPA autoconfiguration. As you are going to configure the database related beans explicitly, you will turn off the DataSource/JPA autoconfiguration by excluding the AutoConfiguration classes
+
+@SpringBootApplication(
+        exclude = { DataSourceAutoConfiguration.class,
+                    HibernateJpaAutoConfiguration.class,
+                    DataSourceTransactionManagerAutoConfiguration.class})
+@EnableTransactionManagement
+public class SpringbootMultipleDSDemoApplication
+{
+    public static void main(String[] args)
+    {
+        SpringApplication.run(SpringbootMultipleDSDemoApplication.class, args);
+    }
+}
+
+As you have turned off AutoConfigurations, you are enabling TransactionManagement explicitly by using the @EnableTransactionManagement annotation.
+
+
+3. Configure the datasource properties. Configure the Security and Orders database connection parameters in the application.properties file.
+
+datasource.security.driver-class-name=com.mysql.jdbc.Driver
+datasource.security.url=jdbc:mysql://localhost:3306/security
+datasource.security.username=root
+datasource.security.password=admin
+datasource.security.initialize=true
+
+datasource.orders.driver-class-name=com.mysql.jdbc.Driver
+datasource.orders.url=jdbc:mysql://localhost:3306/orders
+datasource.orders.username=root
+datasource.orders.password=admin
+datasource.orders.initialize=true
+hibernate.hbm2ddl.auto=update
+hibernate.show-sql=true
+
+4. Create a security related JPA entity and a JPA repository.
+5. Create UserRepository
+
+6. Create an orders-related JPA entity and JPA repository.
+
+7. Create SQL scripts to initialize sample data. Create the security-data.sql script
+in the src/main/resources folder to initialize the USERS table with sample data.
+
+
+8. Create the SecurityDBConfig.java configuration class. You will
+configure the Spring beans such as DataSource, TransactionManager, EntityManagerFactoryBean, and DataSourceInitializer by connecting to the Security database in SecurityDBConfig.java
+
+
+9. Create the OrdersDBConfig.java configuration class. Similar to SecurityDBConfig.java, you will create OrdersDBConfig.java but point it to the Orders database.
+
+
+Use OpenEntityManagerInViewFilter for Multiple Data Sources
+
+If you have multiple database configuration set up as described in previous section in web applications, and want to use OpenEntityManagerInViewFilter to enable lazy loading of JPA entity LAZY associated collections while rendering the view, you need to register the OpenEntityManagerInViewFilter beans
+
