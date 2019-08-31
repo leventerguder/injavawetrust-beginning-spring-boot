@@ -1,0 +1,266 @@
+Web Applications with Spring Boot
+
+Since the Spring 3.0 version, Spring MVC has provided annotation based request mapping capabilities using @Controller and @RequestMapping. But configuring Spring MVC web application components such as DispatcherServlet, ViewResolvers, MultiPartResolver, and ExceptionHandlers is a repetitive and tedious process.
+
+Spring Boot makes it very easy to get started with Spring MVC because the Spring Boot autoconfiguration mechanism configures most of the components such as DispatcherServlet, ViewResolvers, ContentNegotiatingViewResolver, LocaleResolver, MessageCodesResolver, etc., with default values and provides the options to customize them.
+
+
+Traditionally JSPs are being used for view rendering, but there are many other view templating technologies emerged over the time such as Thymeleaf, Mustache, Groovy Templates, FreeMarker, etc. Spring Boot provides autoconfiguration for these view templating libraries as well.
+
+
+Spring Boot provides embedded servlet container support so that you can build your applications as self-contained deployment units. Spring Boot supports Tomcat, Jetty, and Undertow servlet containers out- of-the-box and provides customization hooks to implement all server level customizations.
+
+
+# Introducing Spring MVC #
+
+Spring MVC is a powerful web framework built on MVC and front controller design patterns. Spring MVC provides DispatcherServlet, which acts as a front controller by receiving all the requests and delegates the processing to request handlers (controllers). Once the processing is done, ViewResolver will render a view based on the view name. 
+
+
+Spring MVC provides annotation-based mapping support to map request URL patterns to handler
+classes using @Controller and @RequestMapping annotations
+
+@Controller
+public class HomeController
+{
+    @RequestMapping(value="/home", method=RequestMethod.GET)
+    public String home(Model model) {
+        model.addAttribute("message", "Hello Spring MVC!!");
+        return "home";
+    }
+}
+
+
+Spring 4.3 introduced @GetMapping, @PostMapping, @PutMapping, etc., annotations as convenient composed annotations so that you don’t have to specify a method type in @RequestMapping(value="/url", method=RequestMethod.XXX).
+
+@Controller
+public class HomeController
+{
+	@GetMapping("/home")
+    public String home(Model model) {
+        model.addAttribute("message", "Hello Spring MVC!!");
+        return "home";
+    }
+    @PostMapping("/users")
+    public String createUser(User user) {
+        userRepository.save(user);
+        return "users";
+    }
+}
+
+
+For SpringMVC-based web applications, we need to configure various web layer components like DispatcherServlet, ViewResolvers, LocaleResolver, HandlerExceptionResolver, etc. Spring Boot provides the Web starter, which autoconfigures all these commonly used web layer components, thus making web application development much easier.
+
+
+
+Developing Web Application Using Spring Boot
+
+Spring Boot provides the Web starter spring-boot-starter-web for developing web applications using Spring MVC.
+Spring Boot autoconfiguration registers the SpringMVC beans like DispatcherServlet , ViewResolvers, ExceptionHandlers
+
+
+
+<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+
+
+The spring-boot-starter-web by default configures DispatcherServlet to the URL pattern "/" and adds Tomcat as the embedded servlet container , which runs on port 8080.
+
+Spring Boot by default serves the static resources (HTML, CSS, JS, images, etc.) from the following CLASSPATH locations:
+
+- /static
+- /public
+- /resources
+- /META-INF/resources
+
+In addition to these locations, you can also use WebJars (http://www.webjars.org/) for serving static resources. Spring Boot automatically serves any request to the /webjars/ path from the WebJars JAR files. You can override the static resource locations by configuring the spring.resources.staticLocations property in the application.properties file.
+
+spring.resources.staticLocations=classpath:/assets/
+
+
+By default, the Spring Boot Web starter uses Tomcat as the embedded servlet container and runs on
+port 8080. However, you can customize the server properties using server.* in application.properties.
+
+server.port=9090
+server.servlet.context-path=/demo
+server.servlet.path=/app
+
+
+
+Using the Tomcat, Jetty, and Undertow Embedded Servlet Containers
+
+
+As mentioned, the Spring Boot Web starter includes Tomcat as the embedded servlet container by default. Instead of Tomcat, though, you can use other servlet containers like Jetty or Undertow.
+
+To use Jetty as the embedded container, you simply need to exclude spring-boot-starter-tomcat and add spring-boot-starter-jetty.
+
+
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jetty</artifactId>
+</dependency>
+
+
+Undertow (http://undertow.io/) is a web server written in Java. It provides blocking and non-blocking APIs based on NIO. Spring Boot provides autoconfiguration support for the Undertow server as well. Similar to what you saw with Jetty, you can configure Spring Boot to use the Undertow embedded server instead of 
+
+Tomcat as follows:
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-undertow</artifactId>
+</dependency>
+
+
+You can customize various properties of the Tomcat, Jetty, and Undertow servlet containers using the server.tomcat.* , server.jetty.*, and server.undertow.* properties, respectively.
+
+
+server.tomcat.accesslog.directory=logs # Directory in which log files are created. server.tomcat.accesslog.enabled=false # Enable access log. server.tomcat.accesslog.file-date-format=.yyyy-MM-dd # Date format to place in log file name. server.tomcat.basedir= # Tomcat base directory. If not specified a temporary directory will be used.
+server.tomcat.max-connections= # Maximum number of connections that the server will accept
+and process at any given time.
+server.tomcat.max-http-header-size=0 # Maximum size in bytes of the HTTP message header.
+server.tomcat.max-http-post-size=0 # Maximum size in bytes of the HTTP post content.
+server.tomcat.max-threads=0 # Maximum amount of worker threads.
+server.tomcat.min-spare-threads=0 # Minimum amount of worker threads.
+server.tomcat.port-header=X-Forwarded-Port # Name of the HTTP header used to override the
+original port value.
+
+server.jetty.acceptors= # Number of acceptor threads to use.
+server.jetty.accesslog.append=false # Append to log.
+server.jetty.accesslog.date-format=dd/MMM/yyyy:HH:mm:ss Z
+server.jetty.accesslog.enabled=false # Enable access log.
+server.jetty.accesslog.filename= # Log filename. If not specified, logs will be redirected
+to "System.err".
+server.jetty.accesslog.log-cookies=false # Enable logging of the request cookies.
+server.jetty.accesslog.log-latency=false # Enable logging of request processing time.
+server.jetty.max-http-post-size=0 # Maximum size in bytes of the HTTP post or put content.
+
+
+server.undertow.accesslog.dir= # Undertow access log directory.
+server.undertow.accesslog.enabled=false # Enable access log.
+server.undertow.accesslog.rotate=true # Enable access log rotation.
+server.undertow.accesslog.suffix=log # Log file name suffix.
+server.undertow.buffer-size= # Size of each buffer in bytes.
+server.undertow.io-threads= # Number of I/O threads to create for the worker.
+server.undertow.max-http-post-size=0 # Maximum size in bytes of the HTTP post content.
+
+
+Use the org.springframework.boot.autoconfigure.web.ServerProperties class to see a complete list of server customization properties.
+
+
+Customizing Embedded Servlet Containers
+
+
+Spring Boot provides lot of customization options for configuring servlet containers using the server.* properties. You can customize the port, connectionTimeout, contextPath, and SSL configuration parameters, as well as the session configuration parameters by configuring these properties in application. properties.
+
+But if you need more control, you can register embedded servlet containers programmatically by registering a bean of type TomcatServletWebServerFactory, JettyServletWebServerFactory, or UndertowServletWebServerFactory based on the embedded server you want to use.
+
+
+
+Customizing SpringMVC Configuration
+
+If you want to take advantage of Spring Boot’s autoconfiguration and add some additional MVC configuration (interceptors, formatters, view controllers, etc.), then you can create a configuration class without the @EnableWebMvc annotation, which implements WebMvcConfigurer and supplies additional configuration.
+
+if you want complete control over the spring MVC configuration, you can add your own configuration class annotated with @EnableWebMvc. spring boot’s WebMVC autoconfiguration will be completely turned off if you create a configuration class with the @Configuration and @EnableWebMvc annotations
+
+
+SpringMVC provides WebMvcConfigurerAdapter, which is an implementation of the WebMvcConfigurer interface. But WebMvcConfigurerAdapter is deprecated as of Spring 5.0, because WebMvcConfigurer has default method implementations and uses Java 8 default method support.
+
+
+Registering Servlets, Filters, and Listeners as Spring Beans
+
+You can register servlets, filters, listeners by using the ServletRegistrationBean, FilterRegistrationBean, and ServletListenerRegistrationBean bean definitions.
+
+
+
+With this approach, you can take advantage of Spring’s dependency injection for servlets, filters, and listeners. Let’s take a look at how you can register filters and listeners as well.
+
+
+JavaMelody (https://github.com/javamelody/javamelody/wiki) is a library that can be used to monitor Java-based web applications. JavaMelody can provide various metrics about the running application, including:
+
+- A summary indicating the overall number of executions, the average execution time, the CPU time, and the percentage of errors.
+
+- The percentage of time spent on the requests when the average time exceeds a configurable threshold.
+
+- The complete list of requests, aggregated without dynamic parameters with the number of executions, the mean execution time, the mean CPU time, the percentage of errors, and an evolution chart of execution time over time.
+
+- Each HTTP request indicates the size of the flow response, the mean number of SQL executions, and the mean SQL time.
+
+
+- Integrating JavaMelody into a Java web application is very simple. You need to register net.bull. javamelody.MonitoringFilter, which is a filter, and net.bull.javamelody.SessionListener, which is a HttpSessionListener.
+
+
+
+Spring Boot Web Application as a Deployable WAR
+
+
+The Spring Boot web application can be developed using WAR type packaging also. The first thing you do if you want to build a deployable WAR file is change the packaging type.
+If you are using Maven, then in pom.xml, change the packaging type to war.
+
+<packaging>war</packaging>
+
+
+When you add the spring-boot-starter-web dependency. It will transitively add the spring-boot- starter-tomcat dependency as well. So you need to add spring-boot-starter-tomcat as the provided scope so that it won’t get packaged inside the WAR file.
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-tomcat</artifactId>
+    <scope>provided</scope>
+</dependency>
+
+
+Finally, you need to provide a SpringBootServletInitializer sub-class and override its configure() method. You can simply make your application’s entry point class extend SpringBootServletInitializer
+
+
+@SpringBootApplication
+public class SpringbootWebDemoApplication extends SpringBootServletInitializer {
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(SpringbootWebDemoApplication.class);
+    }
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(SpringbootWebDemoApplication.class, args);
+} }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
