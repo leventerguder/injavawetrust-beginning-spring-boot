@@ -1,0 +1,175 @@
+View Templates that Spring Boot Supports
+
+Java Server Pages (JSP) is the most commonly used view templating technology in traditional Java-based web applications. However, there are new view templating libraries, such as Thymeleaf, Mustache, etc., that have emerged as alternatives to JSP.
+Spring Boot provides autoconfiguration for the following view templating technologies.
+
+
+Thymeleaf (http://www.thymeleaf.org/)
+
+Mustache (http://mustache.github.io/)
+
+Groovy (http://docs.groovy-lang.org/docs/next/html/documentation/ template-engines.html#_the_markuptemplateengine)
+
+FreeMarker (http://freemarker.org/docs/)
+
+Although Spring MVC supports JSP, there are some known limitations (http://docs.spring.io/spring- boot/docs/current/reference/htmlsingle/#boot-features-jsp-limitations) to using JSP in Spring Boot applications with an embedded servlet container. But JSP works fine in Spring Boot WAR type modules.
+
+
+Using the Thymeleaf View Templates
+
+Thymeleaf is a server-side Java template engine that provides support for integrating with SpringMVC and SpringSecurity. Among the supporting view templates, Thymeleaf is the most popular one used in Spring Boot applications.
+In this section, you see how you can use Thymeleaf in a Spring Boot web application. Create a Spring Boot Maven project with the spring-boot-starter-thymeleaf starter.
+
+
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+</dependencies>
+
+
+ThymeleafAutoConfiguration will take care of registering TemplateResolver, ThymeleafViewResolver, SpringResourceTemplateResolver, and SpringTemplateEngine. By default, Spring Boot loads the Thymeleaf view templates from the classpath:/templates/ directory.
+
+
+Working with Thymeleaf Forms
+
+
+Thymeleaf offers very good Spring integration with support for:
+• Forms with backing beans and result/error bindings
+• Use of property editors and conversion services
+• Displaying internationalization (i18n) messages using ResourceBundles
+• Using the Spring Expression Language (Spring EL)
+
+
+Form Validation
+
+Validating the user submitted data is crucial in web applications. Spring supports data validation using Spring’s own validation framework and supports the Java Bean Validation API.
+First, you need to specify the user validation rules using Java Bean validation annotations.
+
+When the form is submitted with invalid data, those validation errors will be populated in BindingResult. 
+
+
+
+File Uploading
+
+
+Spring Boot’s org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration enables multi-part uploads by default.
+
+You can create a form with enctype="multipart/form-data" to upload a file
+
+<form action="uploadMyFile" th:action="@{/uploadMyFile}"
+        method="post" enctype="multipart/form-data">
+  <input type="file" name="myFile" />
+  <input type="submit" />
+</form>
+
+
+@PostMapping("/uploadMyFile")
+public String handleFileUpload(@RequestParam("myFile") MultipartFile file)
+{
+    if (!file.isEmpty())
+    {
+        String name = file.getOriginalFilename();
+        try
+        {
+            byte[] bytes = file.getBytes();
+            Files.write(new File(name).toPath(), bytes);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+}
+    return "redirect:/fileUpload";
+}
+
+
+You can customize multipart configuration using the following properties:
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=2MB
+spring.servlet.multipart.max-request-size=20MB
+spring.servlet.multipart.file-size-threshold=5MB
+
+
+Using ResourceBundles for Internationalization (i18n)
+
+By default, Spring Boot’s org.springframework.boot.autoconfigure.context. MessageSourceAutoConfiguration registers the MessageSource bean with the base name "messages".
+
+
+You can add ResourceBundles such as messages.properties, messages_en.properties, and messages_fr.properties in the root classpath, which will be automatically picked up by Spring Boot. You can also customize the ResourceBundles basename using the spring.messages.basename property.
+
+spring.messages.basename=messages
+spring.messages.cache-seconds=-1(cache expiration in seconds. If set to -1, bundles arecached forever)
+spring.messages.encoding=UTF-8
+spring.messages.fallback-to-system-locale=true
+
+
+
+Create the default ResourceBundle messages.properties in src/main/resources/ folder as follows:
+app.title=SpringBoot Thymeleaf Demo
+app.version=1.0
+email.exists=Email {0} is already in use.
+
+
+ResourceBundles for Hibernate Validation Errors
+
+Spring Boot uses Hibernate Validator as the Bean Validation API implementation. By default, Hibernate validation looks for the ValidationMessages.properties file in the root classpath for failure message keys. If you want to use messages.properties for both i18n and Hibernate Validation error messages, you can register the Validator bean
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer
+{
+    ...
+    ...
+    @Autowired
+    private MessageSource messageSource;
+    @Override
+    public Validator getValidator() {
+        LocalValidatorFactoryBean factory = new LocalValidatorFactoryBean();
+        factory.setValidationMessageSource(messageSource);
+        return factory;
+} 
+}
+
+With this configuration, both the internationalization (i18n) and Hibernate Validation error message keys will be picked up from the messages*.properties files.
+
+
+Error Handling
+
+You can handle exceptions in Spring MVC applications by registering the SimpleMappingExceptionResolver bean and configuring which view to render for what type of exception
+
+
+@Configuration
+@EnableWebMvc
+public class WebMvcConfig implements WebMvcConfigurer
+{
+    @Bean(name="simpleMappingExceptionResolver")
+    public SimpleMappingExceptionResolver simpleMappingExceptionResolver()
+    {
+        SimpleMappingExceptionResolver exceptionResolver = new SimpleMappingException
+        Resolver();
+        Properties mappings = new Properties();
+        mappings.setProperty("DataAccessException", "dbError");
+        mappings.setProperty("RuntimeException", "error");
+        exceptionResolver.setExceptionMappings(mappings);
+        exceptionResolver.setDefaultErrorView("error");
+        return exceptionResolver;
+	} 
+}
+
+
+You can also use the @ExceptionHandler annotation to define handler methods for specific exception types
+
+You can handle exceptions globally by creating an exception handler class annotated with @ControllerAdvice. The @ExceptionHandler methods in the @ControllerAdvice class handle errors that occur in any controller request handling method.
+
+
+Spring Boot registers a global error handler and maps /error by default, which renders an HTML response for browser clients and a JSON response for REST clients. You can provide the custom error page by implementing ErrorController
+
+
+You can also provide custom error pages based on the HTTP error status code. Spring Boot looks for error pages in the /error folder under the static resource locations (classpath:/static, classpath:/ public, etc.).
+
+For example, you can display the src/main/resources/static/error/404.html file when a 404 error occurs. Likewise, you can also display the src/main/resources/static/error/5xx.html file for all server errors with 5xx error status codes.
