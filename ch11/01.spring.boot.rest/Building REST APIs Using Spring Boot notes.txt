@@ -205,11 +205,13 @@ At times, you may need more control over the response formats and can’t or don
 
 
 
+Exception Handling
 
-
-
-
-
+Instead of simply throwing an exception with the HTTP status code, it is better to provide more details about the issue, such as the error code, message, developer message, etc.
+In the controller handler method, you can throw exception based on error conditions and handle those exceptions using the @ExceptionHandler methods
+You can handle exceptions globally using the @ControllerAdvice class with the @ExceptionHandler methods
+The global exception handling mechanism helps you handle exceptions (like database communication errors and third-party service invocation failures) 
+in a central place instead of handling them in each controller class.
 
 
 

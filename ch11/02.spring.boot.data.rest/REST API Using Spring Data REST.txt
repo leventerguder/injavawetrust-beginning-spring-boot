@@ -1,0 +1,110 @@
+REST API Using Spring Data REST
+
+If your application needs are more like a REST API with CRUD operations on top of database tables, you can use Spring Data REST.
+
+Spring Data REST builds on top of the Spring Data repositories and automatically exports
+them as REST resources. Spring Data REST configuration is defined in the configuration class RepositoryRestMvcConfiguration and you can simply import it using @Import(RepositoryRestMvcConfig uration.class) to activate it in our application.
+
+Spring Boot will automatically enable Spring Data REST if you add spring-boot-starter-data-rest to your application.
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-rest</artifactId>
+</dependency>
+
+
+To expose the Spring Data repositories as REST resources with the defaults, you don’t need to add any extra configuration. You can simply create the JPA entities and Spring Data JPA repositories as shown in the previous section.
+
+
+Sorting and Pagination
+
+If the Repository extends PagingAndSortingRepository, then Spring Data REST endpoints support pagination and sorting out-of-the-box.
+You can use the size query parameter to limit the number of entries returning. 
+
+http://localhost:8080/posts/?size=10
+
+
+To retrieve the second page entries with five entries per page, use the page and size query parameters. 
+
+http://localhost:8080/posts?page=1&size=5
+
+To retrieve entries sorted by some property, use the sort query parameter. 
+
+http://localhost:8080/posts?sort=createdOn,desc
+
+
+Spring Data REST by default exposes all the public repository interfaces without requiring any extra configuration. But if you want to customize the defaults, you can use the @RepositoryRestResource and @RestResource annotations. You can disable a repository from being exposed as a REST resource by adding @RepositoryRestResource(exported = false).
+
+@RepositoryRestResource(exported = false)
+public interface CommentRepository extends JpaRepository<Comment, Integer>
+{
+}
+
+
+
+You can disable specific methods from being exposed as REST resources by adding @RestResource (exported = false) on the methods. You can also customize the default path and rel attribute values using @RepositoryRestResource, as follows:
+
+
+@RepositoryRestResource(path = "people", rel = "people")
+public interface UserRepository extends JpaRepository<User, Integer>
+{
+  @Override
+  @RestResource(exported = false)
+  void delete(Integer id);
+  
+  @Override
+  @RestResource(exported = false)
+  void delete(User entity);
+}
+
+
+You can customize various properties of Spring Data REST using the spring.data.rest.* properties in the application.properties file. If you want even more control over the customization, you can register a RepositoryRestConfigurer (or extend RepositoryRestConfigurerAdapter) and implement or override the configure*() methods based on your needs.
+
+
+For example, by default, the entity’s primary key (id) values won’t be exposed in the responses. If you want to expose the id values for certain entities, you can customize it as follows:
+
+
+@Configuration
+public class RestRepositoryConfig extends RepositoryRestConfigurerAdapter
+{
+    @Override
+    public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config)
+    {
+        config.exposeIdsFor(User.class);
+    }
+}
+
+
+
+CORS Support in Spring Data REST
+Similar to SpringMVC REST endpoints, you can enable CORS support for Spring Data REST endpoints using
+the @CrossOrigin annotation at the repository level or globally.
+
+@CrossOrigin
+public interface UserRepository extends JpaRepository<User, Integer>
+{
+}
+
+
+
+To enable CORS support globally, you can extend RepositoryRestConfigurerAdapter and provide CORS configuration
+
+@Configuration
+public class RepositoryConfig extends RepositoryRestConfigurerAdapter
+{
+    @Override
+    public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config)
+    {
+        config.getCorsRegistry()
+                    .addMapping("/api/**")
+	.allowedOrigins("http://localhost:3000")
+	.allowedMethods("*")
+	.allowedHeaders("*")
+	.allowCredentials(false)
+	.maxAge(3600);
+
+	}
+}
+
+Spring MVC's CORS configuration is NOT applied to Spring Data REST endpoints.
+
