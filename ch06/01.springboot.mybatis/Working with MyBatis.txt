@@ -1,0 +1,73 @@
+Working with MyBatis
+
+MyBatis is an open source Java persistence framework that abstracts JDBC boilerplate code and provides a simple and easy-to-use API to interact with the database.
+
+
+Unlike Hibernate, which is a full-blown ORM framework, MyBatis is a SQL mapping framework. It automates the process of populating the SQL resultset into Java objects and it persists data into tables by extracting the data from the Java objects.
+
+
+Using the Spring Boot MyBatis Starter
+
+The MyBatis community built the Spring Boot starter for MyBatis, which you can use while creating the Spring Boot project from the Spring Initializer or from the IDE. You can explore the source code on GitHub at: https://github.com/mybatis/mybatis-spring-boot.
+
+
+
+public interface UserMapper
+{
+    void insertUser(User user);
+    User findUserById(Integer id);
+    List<User> findAllUsers();
+}
+
+You now need to create mapper XML files to define the queries for the SQL statements mapped to the corresponding mapper interface methods. 
+
+A few things to observe here are:
+- The namespace in the mapper XML should be the same as the Fully Qualified Name (FQN) of the mapper interface.
+
+- The statement id values should be the same as the mapper interface method
+names.
+
+- If the query result column names are different from the bean property names, you can use the <resultMap> configuration to provide mapping between column names and their corresponding bean property names.
+
+MyBatis also provides annotation-based query configurations without requiring mapper XMLs. You can create the UserMapper.java interface and configure the mapped SQLs using annotations
+
+public interface UserMapper
+{
+    @Insert("insert into users(name,email) values(#{name},#{email})")
+    @SelectKey(statement="call identity()", keyProperty="id",
+                before=false, resultType=Integer.class)
+
+    void insertUser(User user);
+    @Select("select id, name, email from users WHERE id=#{id}")
+
+    User findUserById(Integer id);
+    @Select("select id, name, email from users")
+    List<User> findAllUsers();
+}
+
+
+Next, you have to configure the starter configuration parameters. Configure the type-aliases-package and mapper-locations parameters in application. properties as follows.
+
+mybatis.type-aliases-package=com.apress.demo.domain
+mybatis.mapper-locations=classpath*:/mappers/*.xml
+
+
+ @MapperScan annotation to specify where to look for the mapper interfaces. instead of using @MapperScan, you could also annotate mapper interfaces with the new @Mapper annotation that shipped with MyBatis 3.4.0.
+
+
+ The Spring Boot MyBatis starter provides the following MyBatis configuration parameters, which you can use to customize your MyBatis settings.
+
+
+ mybatis.config-location =  #mybatis config filename
+mybatis.check-config-location=  # Indicates whether to perform presence check of the MyBatis
+xml config file
+mybatis.mapper-locations =  #mappers file locations
+mybatis.type-aliases-package =  #domain object's package
+
+mybatis.type-handlers-package =  #handler's package
+mybatis.check-config-location =  #check the mybatis configuration exists
+mybatis.executor-type =  #mode of execution. Default is SIMPLE
+mybatis.configuration-properties=  #externalized properties for mybatis configuration
+
+
+
