@@ -41,6 +41,11 @@ public class Post {
 	private Date updatedOn;
 
 	@JsonManagedReference
+	/*
+	 * You can break the infinite recursion by using @JsonManagedReference
+	 * and @JsonBackReference annotations as well.
+	 * 
+	 */
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<Comment> comments;
 

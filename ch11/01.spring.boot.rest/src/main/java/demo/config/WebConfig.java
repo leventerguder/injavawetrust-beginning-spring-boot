@@ -21,6 +21,16 @@ public class WebConfig implements WebMvcConfigurer {
 		return factory;
 	}
 
+	/*
+	 * For security reasons, browsers don’t allow you to make AJAX requests to
+	 * resources residing outside of the current origin.
+	 * 
+	 * You can enable CORS at the controller level or at the method level using
+	 * the @CrossOrigin annotation.
+	 * 
+	 * Specifying CORS configuration at the class and method levels, you can
+	 * configure it globally by implementing the WebMvcConfigurer.addCorsMappings()
+	 */
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/**").allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")

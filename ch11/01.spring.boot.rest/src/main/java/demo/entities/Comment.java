@@ -17,6 +17,7 @@ import javax.persistence.TemporalType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 //@JsonIgnoreProperties({"post"})
+// You can break the infinite recursion by adding the @JsonIgnore annotation on the back reference from the child object.
 @Entity
 @Table(name = "COMMENTS")
 public class Comment {
