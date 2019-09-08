@@ -1,0 +1,263 @@
+Building REST APIs Using Spring Boot
+
+REST(REpresentational State Transfer) is an architectural style for building distributed systems that provide
+interoperability between heterogeneous systems.
+
+REST stands for representational state transfer and is an architectural style for designing distributed hypermedia systems
+
+The fundamental concept of a REST-based system is the resource, which can be identified by a Uniform Resource Identifier (URI). For web-based systems, HTTP is the most commonly used protocol for communicating with external systems. You can identify a unique resource using a URI.
+
+Following the REST principles , you can use the following HTTP verbs :
+
+GET    -  To get a collection or a single resource
+POST   -  To create a new resource
+PUT    -  To update an existing resource
+DELETE —  To delete a collection or a single resource
+
+GET - http://localhost:8080/myblog/posts/: Returns a list of all posts
+GET - http://localhost:8080/myblog/posts/2: Returns a post whose ID is 2
+POST - http://localhost:8080/myblog/posts/: Creates a new Post resource
+PUT - http://localhost:8080/myblog/posts/2: Updates a Post resource whose ID is 2
+DELETE - http://localhost:8080/myblog/posts/2: Deletes a Post resource whose ID is 2
+GET — http://localhost:8080/myblog/posts/2/comments: Returns all the comments of the Post whose ID is 2
+POST — http://localhost:8080/myblog/posts/2/comments: Creates a new comment for the Post whose ID is 2
+DELETE — http://localhost:8080/myblog/posts/2/comments: Deletes all the comments of the Post whose ID is 2
+
+
+REST API Using Spring MVC
+
+SpringMVC provides support for building RESTful web services and Spring Boot makes it much easier with its autoconfiguration mechanism.
+
+
+@Controller
+public class PostController
+{
+    @Autowired
+    PostRepository postRepository;
+    @ResponseBody
+    @GetMapping("/posts")
+    public List<Post> listPosts()
+    {
+        return postRepository.findAll();
+    }
+}
+
+It just looks like a normal SpringMVC controller, with two noticeable differences:
+
+Unlike the normal controller methods, which return a view name or a ModelAndView object, the listPosts() method returns a list of Post objects.
+The listPosts() request handler method is annotated with @ResponseBody.
+
+The @ResponseBody annotation on the request handler method indicates that the return value should be bound to the response body. If you make a GET request to the "/posts" URL, you might get a JSON or XML representation of the list of Post objects based on the Accept header value.
+
+
+The @RequestBody annotation will take care of binding the web request body to the method parameter with the help of the registered HttpMessageConverters
+
+@Controller
+public class PostController
+{
+    @Autowired
+    PostRepository postRepository;
+    ...
+    ...
+    @ResponseBody
+    @PostMapping("/posts")
+    public Post createPost(@RequestBody Post post)
+    {
+        return postRepository.save(post);
+    }
+}
+
+
+The @RequestBody annotation will take care of binding the web request body to the method parameter with the help of the registered HttpMessageConverters.
+
+If all of your handler methods are REST endpoint handler methods, you can have a @ResponseBody at the class level instead of adding it to each method. Even better, you can use @RestController, which is a composed annotation of @Controller and @ResponseBody.
+
+
+By default, if the request handling method completes successfully, the HTTP status code 200 OK will be returned. 
+
+
+
+
+CORS (Cross-Origin Resource Sharing) Support
+
+You can enable CORS at the controller level or at the method level using the @CrossOrigin annotation. Now you’ll see how you can enable CORS support on a specific request handling method.
+
+
+
+@RestController
+public class UserController
+{
+    @CrossOrigin
+    @GetMapping("/users/{id}")
+    public User getUser(@PathVariable Long id) {
+// ... }
+    @DeleteMapping("/users/{id}")
+    public void deleteUser(@PathVariable Long id) {
+// ... }
+
+}
+
+
+the CORS support enables only the forgetUsers() method using the default configuration.
+
+All headers and origins are permitted
+Credentials are allowed
+Maximum age is set to 30 minutes
+The list of HTTP methods is set to the methods on the @RequestMethod annotation
+
+
+You can customize these properties by providing options on the @CrossOrigin annotation.
+@CrossOrigin(origins={"http://domain1.com", "http://domain2.com"},
+                 allowedHeaders="X-AUTH-TOKEN",
+                 allowCredentials="false",
+                 maxAge=15*60,
+                 methods={RequestMethod.GET, RequestMethod.POST }
+                )
+    @GetMapping("/users/{id}")
+    public User getUser(@PathVariable Long id) {
+        // ...
+}
+
+
+you can apply the @CrossOrigin annotation at the controller class level.
+@CrossOrigin
+@RestController
+public class UserController
+{
+....
+.... 
+
+}
+
+
+Global CORS Configuration
+
+In addition to specifying CORS configuration at the class and method levels, you can configure it globally by implementing the WebMvcConfigurer.addCorsMappings() method.
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer
+{
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+        .allowedOrigins("http://localhost:3000")
+        .allowedMethods("*")
+        .allowedHeaders("*")
+        .allowCredentials(false)
+        .maxAge(3600);
+    }
+}
+
+
+This configuration enables the CORS for URL pattern /api/** from the origin http://localhost:3000
+only. You can specify allowedOrigins("*") to allow requests from any origin.
+
+
+Exposing JPA Entities with Bi-Directional References Through RESTful Services
+
+You need to take extra care when exposing JPA entities with bi-directional references through RESTful services.
+If you try to marshal a JPA parent entity (say Post) that has a collection of child entities (say List<Comment>) and the child has a reference back to the parent (Post), then the JPA marshaling will end up in infinite recursion and will throw StackOverflowError.
+
+Spring Boot by default configures the Jackson JSON (https://github.com/FasterXML/jackson- databind) library to marshal/unmarshal Java beans into JSON and vice versa.
+
+
+Using @JsonIgnore
+
+You can break the infinite recursion by adding the @JsonIgnore annotation on the back reference from the child object.
+
+@Entity
+@Table(name = "COMMENTS")
+public class Comment
+{
+    ...
+    ...
+    @JsonIgnore
+    @ManyToOne(optional=false)
+    @JoinColumn(name="post_id")
+    private Post post;
+    ...
+    ...
+}
+
+
+You can add @JsonIgnore on all the properties that you want to exclude from marshaling or you can use
+@JsonIgnoreProperties at the class level to list all the property names to ignore.
+@JsonIgnoreProperties({"post"})
+@Entity
+@Table(name = "COMMENTS")
+public class Comment
+{
+....
+.... 
+}
+
+Using @JsonManagedReference and @JsonBackReference
+
+You can break the infinite recursion by using @JsonManagedReference and @JsonBackReference annotations as well.
+
+the @JsonManagedReference annotation is used to indicate that the annotated property is part of a two-way linkage between fields and that its role is as a "parent" (or "forward") link. the @JsonBackReference annotation is also used to indicate that the associated property is part of a two-way linkage between fields, but its role is as a "child" (or "back") link.
+
+
+At times, you may need more control over the response formats and can’t or don’t want to directly expose database entities as REST endpoint responses. In that case, you can use Data Transfer Objects (DTOs), which you can populate from entities using Java Object Mapper libraries such as 
+- Dozer (http://dozer.sourceforge.net/), 
+- ModelMapper (http://modelmapper.org/), 
+- MapStruct (http://mapstruct.org/).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
