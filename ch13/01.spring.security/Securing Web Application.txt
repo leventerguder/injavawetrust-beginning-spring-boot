@@ -1,0 +1,56 @@
+
+Securing Web Applications
+
+Security is an important aspect of software application design. 
+It ensures that only those who have authority to access the secured resources can do so.
+
+When it comes to securing an application, two primary things you’ll need to take care of are authentication and authorization. 
+
+- Authentication refers to the process of verifying the user, which is typically done by asking for credentials. 
+- Authorization refers to the process of verifying whether or not the user is allowed to do a certain activity.
+
+Spring Security is a powerful and flexible security framework for securing Java-based web applications. 
+Even though Spring Security is commonly used with Spring-based applications, you can use it to secure non-Spring-based web applications too.
+
+
+Spring Security in Spring Boot Web Application
+
+Spring Security is a framework for securing Java-based applications at various layers with great flexibility and customizability. 
+Spring Security provides authentication and authorization support against database authentication, LDAP, form authentication, JA-SIG central authentication service, Java Authentication and Authorization Service (JAAS), 
+and many more. Spring Security provides support for dealing with common attacks like CSRF, XSS, and session fixation protection, with minimal configuration.
+
+
+Adding the Spring Security Starter (spring-boot-starter-security) to an Spring Boot application will:
+
+- Enable HTTP basic security
+
+- Register the AuthenticationManager bean with an in-memory store and a single user
+
+- Ignore paths for commonly used static resource locations (such as /css/**, /js/**, /images/**, etc.)
+
+- Enable common low-level features such as XSS, CSRF, caching, etc.
+
+
+
+Spring Boot implemented the default Spring Security autoconfiguration in SecurityAutoConfiguration. 
+To switch the default web application security configuration and provide your own customized security configuration, 
+you can create a configuration class that extends WebSecurityConfigurerAdapter and is annotated with @EnableWebSecurity.
+ 
+
+ <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+
+Spring Boot implemented the default Spring Security autoconfiguration in SecurityAutoConfiguration. 
+To switch the default web application security configuration and provide your own customized security configuration, 
+you can create a configuration class that extends WebSecurityConfigurerAdapter and is annotated with @EnableWebSecurity.
