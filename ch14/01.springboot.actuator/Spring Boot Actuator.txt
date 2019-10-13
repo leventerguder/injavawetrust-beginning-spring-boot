@@ -1,0 +1,165 @@
+
+Introducing the Spring Boot Actuator
+
+The Spring Boot Actuator module provides production-ready features such as monitoring, metrics,
+health checks, etc. The Spring Boot Actuator enables you to monitor the application using HTTP endpoints and JMX.
+
+
+Spring Boot Actuator module helps you monitor and manage your Spring Boot application by providing production-ready features like health check-up, auditing, metrics gathering, HTTP tracing etc. All of these features can be accessed over JMX or HTTP endpoints.
+
+
+Spring Boot provides spring-boot-starter-actuator to autoconfigure Actuator. You can take advantage of Actuator’s features in order to monitor a Spring Boot application
+
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+
+
+
+// http://localhost:8080/actuator
+
+Actuator creates several so-called endpoints that can be exposed over HTTP or JMX to let you monitor and interact with your application.
+
+For example, There is a /health endpoint that provides basic information about the application’s health. The /metrics endpoint shows several useful metrics information like JVM memory used, system CPU usage, open files, and much more. The /loggers endpoint shows application’s logs and also lets you change the log level at runtime.
+
+Note that, every actuator endpoint can be explicitly enabled and disabled. Moreover, the endpoints also need to be exposed over HTTP or JMX to make them remotely accessible.
+
+Let’s first run the application and try to access the actuator endpoints that are enabled and exposed over HTTP by default. After that, we’ll learn how to enable more actuator endpoints and also expose them over HTTP.
+
+
+The application will start on port 8080 by default. Once the application has started, you can list all the actuator endpoints exposed over HTTP from the URL http://localhost:8080/actuator
+
+By default, only the health and info endpoints are exposed over HTTP. That’s why the /actuator page lists only the health and info endpoints.
+
+
+
+### Enabling and Disabling Actuator Endpoints
+
+By default, all the endpoints that I listed in the previous section are enabled except the shutdown endpoint.
+
+You can enable or disable an actuator endpoint by setting the property management.endpoint.<id>.enabled to true or false (where id is the identifier for the endpoint).
+
+For example, to enable the shutdown endpoint, add the following to your application.properties file -
+
+management.endpoint.shutdown.enabled=true
+
+
+### Exposing Actuator Endpoints
+
+By default, all the actuator endpoints are exposed over JMX but only the health and info endpoints are exposed over HTTP.
+
+Here is how you can expose actuator endpoints over HTTP and JMX using application properties -
+
+### Exposing Actuator endpoints over HTTP
+
+# Use "*" to expose all endpoints, or a comma-separated list to expose selected ones
+management.endpoints.web.exposure.include=health,info 
+management.endpoints.web.exposure.exclude=
+
+### Exposing Actuator endpoints over JMX
+
+# Use "*" to expose all endpoints, or a comma-separated list to expose selected ones
+management.endpoints.jmx.exposure.include=*
+management.endpoints.jmx.exposure.exclude=
+
+
+Let’s expose all actuator endpoints by setting the property management.endpoints.web.exposure.include to * and check the output of http://localhost:8080/actuator page. You’ll notice that the actuator page now lists all the enabled endpoints
+
+
+
+### The /health Endpoint
+
+The health endpoint checks the health of your application by combining several health indicators.
+The /health endpoint shows the health of the application, including the disk space, databases, etc.
+
+
+### Displaying detailed health information
+
+he health endpoint only shows a simple UP or DOWN status. To get the complete details including the status of every health indicator that was checked as part of the health check-up process, add the following property in the application.properties file
+
+# HEALTH ENDPOINT
+management.endpoint.health.show-details=always
+
+Creating a Custom Health Indicator
+
+You can also create a custom health indicator by implementing the HealthIndicator interface, or extending the AbstractHealthIndicator class 
+
+
+### The /metrics Endpoint
+The /metrics endpoint shows various metrics about the current application, such as how much memory it is using, how much memory is free, the size of the heap being used, the number of threads used, and so on. If you go to http://localhost:8080/actuator/metrics  you should see all the configuration
+
+To get the details of an individual metric, you need to pass the metric name in the URL like this
+
+http://localhost:8080/actuator/metrics/{MetricName}
+
+http://localhost:8080/actuator/metrics/system.cpu.usage
+
+### The /loggers Endpoint
+
+The loggers endpoint, which can be accessed at http://localhost:8080/actuator/loggers, displays a list of all the configured loggers in your application with their corresponding log levels.
+
+You can also view the details of an individual logger by passing the logger name in the URL like this
+
+http://localhost:8080/actuator/loggers/{name}
+
+### Changing log levels at runtime
+
+The loggers endpoint also allows you to change the log level of a given logger in your application at runtime.
+
+For example, To change the log level of the root logger to DEBUG at runtime, make a POST request to the URL http://localhost:8080/actuator/loggers/root with the following payload
+
+
+{
+   "configuredLevel": "DEBUG"
+}
+
+To reset the log-level to the default value, you can pass a value of null in the configuredLevel field.
+
+
+### The /info Endpoint
+
+The info endpoint displays arbitrary information about your application. It obtains build information from META-INF/build-info.properties file, Git information from git.properties file. It also displays any information available in environment properties under the key info.
+
+You can add properties under the key info in application.properties file like so 
+
+
+# INFO ENDPOINT CONFIGURATION
+info.app.name=@project.name@
+info.app.description=@project.description@
+info.app.version=@project.version@
+info.app.encoding=@project.build.sourceEncoding@
+info.app.java.version=@java.version@
+
+### Securing Actuator Endpoints with Spring Security
+
+Actuator endpoints are sensitive and must be secured from unauthorized access. If Spring Security is present in your application, then the endpoints are secured by default using a form-based HTTP basic authentication.
+
+If not, you can add spring security to your application using the following dependency 
+
+<dependency>
+   <groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+
+
+
+You can customize the actuator endpoint URL by setting the emanagement.endpoints.web.base-path property
+
+You can set the management.server.port property to change the HTTP port, as shown in the following example:
+
+management.server.port=8081
+
+
+Hibernate Metrics
+Auto-configuration enables the instrumentation of all available Hibernate EntityManagerFactory instances that have statistics enabled with a metric named hibernate.
+
+Metrics are also tagged by the name of the EntityManagerFactory that is derived from the bean name.
+To enable statistics, the standard JPA property hibernate.generate_statistics must be set to true. You can enable that on the auto-configured EntityManagerFactory as shown in the following example:
+
+
+spring.jpa.properties.hibernate.generate_statistics=true
+
