@@ -1,0 +1,95 @@
+
+Test Driven Development (TDD) is a popular development practice where you write tests first and write just enough production code to pass the tests.
+
+You write various types of tests , such as unit tests , integration tests , performance tests.
+
+Unit tests focus on testing one component in isolation , whereas integration tests verify the behavior of a feature which could possibly involve multiple components.
+
+While doing integration testing , you may have to mock the behavior of dependent components such as third-party web service classes , database method invocations.
+There are mocking libraries like Mockito , Powermock , jMock ...
+
+The dependency injection (DI) design pattern encourages programming to practice and write testable code.
+With dependency injection , you can inject mock implementations for testing and real implementation for production.
+
+
+
+##### Testing Spring Boot Applications #####
+
+One of the key reasons for the popularity of the Spring framework is its great support for testing.
+
+Spring provides SpringRunner , which is a custom JUnit runner helping to load the Spring ApplicationContext by using @ContextConfiguration
+
+
+Spring Boot provides the @SpringBootTest annotation, which uses SpringApplication behind the scenes to load ApplicationContext so that all the Spring Boot features will be available.
+
+
+Typical Spring Boot JUnit Test
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class SpringbootTestingDemoApplicationTests
+{
+    @Autowired
+    UserService userService;
+    @Test
+    public void should_load_all_users()
+    {
+...
+... }
+}
+
+
+The Spring Boot Test starter spring-boot-starter-test pulls in the JUnit, Spring Test, and Spring Boot Test modules, along with the following most commonly used mocking and asserting libraries:
+
+
+### Mockito 
+
+A Java mocking framework found http://site.mockito.org/
+
+### Hamcrest
+Hamcrest—A matcher/predicates library for data assertion found at http://hamcrest.org/JavaHamcrest/
+
+### AssertJ 
+A fluent assertion library found at https://joel-costigliola.github.io/assertj/
+
+
+### JSONassert
+
+An assertion library for JSON found at https://github.com/skyscreamer/JSONassert
+
+
+### JsonPath
+XPath for JSON found at https://github.com/json-path/JsonPath.
+
+
+As you need to test the REST endpoint, you start the embedded servlet container by specifying the webEnvironment attribute of @SpringBootTest.
+
+
+The default webEnvironment value is WebEnvironment.MOCK, which doesn’t start an embedded servlet container.
+
+
+
+MOCK (default)
+Loads a WebApplicationContext and provides a mock servlet environment. It will not start an embedded servlet container. If servlet APIs are not on your classpath, this mode will fall back to creating a regular non-web ApplicationContext.
+
+
+RANDOM_PORT
+Loads a ServletWebServerApplicationContext and starts an embedded servlet container listening on a random available port.
+
+
+DEFINED_PORT
+Loads a ServletWebServerApplicationContext and starts an embedded servlet container listening on a defined port (server.port).
+
+
+NONE
+Loads an ApplicationContext using SpringApplication but does not provide a servlet environment.
+
+
+##### Testing with Mock Implementations
+
+While performin unit testing , you may want to mock calls to external services like database interactions and web service invocations. YOu can create mock implementations to be used in tests and real implementations used in production.
+
+
+##### Testing with Mockito
+Mockito is a popular Java mocking framework that can be used along with JUnit.
+Mockito lets you write tests by mocking the external dependencies with the desired behavior.
