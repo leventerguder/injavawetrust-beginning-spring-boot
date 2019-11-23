@@ -10,6 +10,10 @@ public class User {
 
 	private String password;
 
+	public User() {
+		super();
+	}
+
 	public User(Integer id, String name, String email, String password) {
 		super();
 		this.id = id;
