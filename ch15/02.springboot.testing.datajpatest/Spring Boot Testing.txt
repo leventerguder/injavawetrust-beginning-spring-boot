@@ -1,0 +1,17 @@
+#####  Testing Persistence Layer Components Using @DataJpaTest and @JdbcTest
+
+You might want to test the persistence layer components of your application, which doesn’t require loading of many components like controllers, security configuration, and so on. Spring Boot provides the @DataJpaTest and @JdbcTest annotations to test the Spring beans, which talk to relational databases.
+
+Spring Boot provides the @DataJpaTest annotation to test the persistence layer components that will autoconfigure in-memory embedded databases and scan for @Entity classes and Spring Data JPA repositories. The @DataJpaTest annotation doesn’t load other Spring beans (@Components, @Controller, @Service, and annotated beans) into ApplicationContext.
+
+
+The @DataJpaTest tests are transactional and rolled back at the end of each test by default. You can disable this default rollback behavior for a single test or for an entire test class by annotating with @Transactional(propagation = Propagation.NOT_SUPPORTED)
+
+
+The @DataJpaTest annotation also autoconfigures TestEntityManager, which is an alternative to the JPA EntityManager to be used in JPA tests. 
+
+
+The TestEntityManager provides some convenient methods—like persistAndGetId(), persistAndFlush(), and persistFlushFind()
+
+
+ @DataJpaTest and @JdbcTest, Spring Boot provides other annotations like @DataMongoTest, @DataNeo4jTest, @JooqTest, @JsonTest, and @DataLdapTest to test slices of application.
